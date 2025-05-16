@@ -1,0 +1,939 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Virtual Pet 🐶</title>
+  <style>
+    :root {
+      --primary: #ff9a8b;
+      --secondary: #ff6b95;
+      --accent: #4cc9f0;
+      --light: #f8f9fa;
+      --dark: #212529;
+    }
+    
+    body {
+      font-family: 'Comic Neue', cursive, sans-serif;
+      background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+      text-align: center;
+      padding: 20px;
+      max-width: 600px;
+      margin: 0 auto;
+      min-height: 100vh;
+      color: var(--dark);
+    }
+    
+    h1 {
+      color: var(--secondary);
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+    }
+    
+    .pet-container {
+      position: relative;
+      margin: 20px auto;
+      width: 200px;
+      height: 200px;
+    }
+    
+    .pet {
+      font-size: 100px;
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      transition: transform 0.3s;
+      animation: idle 2s infinite alternate;
+      cursor: pointer;
+      z-index: 1;
+    }
+    
+    .pet-effect {
+      position: absolute;
+      font-size: 30px;
+      opacity: 0;
+      z-index: 2;
+      pointer-events: none;
+    }
+    
+    @keyframes idle {
+      from { transform: translateY(0) scale(1); }
+      to { transform: translateY(-5px) scale(1.05); }
+    }
+    
+    .jump {
+      animation: jump 0.6s ease;
+    }
+    
+    @keyframes jump {
+      0% { transform: translateY(0); }
+      50% { transform: translateY(-30px); }
+      100% { transform: translateY(0); }
+    }
+    
+    .stats {
+      font-size: 18px;
+      margin: 20px;
+      padding: 15px;
+      background: white;
+      border-radius: 15px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+    
+    .stat {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .progress-container {
+      width: 100px;
+      height: 10px;
+      background: #e9ecef;
+      border-radius: 5px;
+      margin-left: 10px;
+      overflow: hidden;
+    }
+    
+    .progress-bar {
+      height: 100%;
+      transition: width 0.5s;
+    }
+    
+    .happiness-bar { background: #4cc9f0; }
+    .hunger-bar { background: #ff6b95; }
+    .health-bar { background: #90ee90; }
+    
+    button {
+      font-size: 16px;
+      margin: 5px;
+      padding: 12px 24px;
+      border: none;
+      border-radius: 50px;
+      cursor: pointer;
+      transition: all 0.3s;
+      font-weight: bold;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    
+    button:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 5px 10px rgba(0,0,0,0.2);
+    }
+    
+    button:active {
+      transform: translateY(1px);
+    }
+    
+    .feed { background: var(--primary); color: white; }
+    .play { background: var(--accent); color: white; }
+    .checkin { background: #90ee90; color: var(--dark); }
+    .minigame { background: #f0e68c; color: var(--dark); }
+    
+    input {
+      padding: 10px;
+      font-size: 16px;
+      margin: 10px 5px;
+      border: 2px solid #ddd;
+      border-radius: 50px;
+      outline: none;
+      transition: border 0.3s;
+    }
+    
+    input:focus {
+      border-color: var(--accent);
+    }
+    
+    .name-container {
+      margin: 20px 0;
+    }
+    
+    .buttons {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 10px;
+      margin: 20px 0;
+    }
+    
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.5);
+      z-index: 100;
+      justify-content: center;
+      align-items: center;
+    }
+    
+    .modal-content {
+      background: white;
+      padding: 20px;
+      border-radius: 15px;
+      max-width: 90%;
+      max-height: 90vh;
+      overflow-y: auto;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+      animation: modalFadeIn 0.3s;
+    }
+    
+    @keyframes modalFadeIn {
+      from { opacity: 0; transform: translateY(-20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .close-modal {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      font-size: 24px;
+      cursor: pointer;
+    }
+    
+    .minigame-container {
+      margin: 20px 0;
+    }
+    
+    .minigame-btn {
+      background: var(--secondary);
+      color: white;
+      margin: 10px;
+      padding: 10px 20px;
+    }
+    
+    .memory-game {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+      margin: 20px auto;
+      max-width: 300px;
+    }
+    
+    .memory-card {
+      aspect-ratio: 1;
+      background: var(--primary);
+      border-radius: 10px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 24px;
+      cursor: pointer;
+      transition: all 0.3s;
+      transform-style: preserve-3d;
+    }
+    
+    .memory-card.flipped {
+      background: white;
+      transform: rotateY(180deg);
+    }
+    
+    .memory-card.matched {
+      background: #90ee90;
+      cursor: default;
+    }
+    
+    .whack-mole-game {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin: 20px auto;
+      max-width: 300px;
+    }
+    
+    .mole-hole {
+      aspect-ratio: 1;
+      background: #8B4513;
+      border-radius: 50%;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .mole {
+      position: absolute;
+      width: 80%;
+      height: 80%;
+      bottom: -100%;
+      left: 10%;
+      background: #654321;
+      border-radius: 50% 50% 0 0;
+      transition: bottom 0.3s;
+    }
+    
+    .mole.up {
+      bottom: 10%;
+    }
+    
+    .mole.whacked {
+      background: #ff0000;
+    }
+    
+    @media (max-width: 480px) {
+      body {
+        padding: 10px;
+      }
+      
+      .pet {
+        font-size: 80px;
+      }
+      
+      .buttons {
+        flex-direction: column;
+      }
+      
+      button {
+        width: 100%;
+      }
+      
+      .stats {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <h1>🐾 My Virtual Pet</h1>
+  <div class="name-container">
+    <input type="text" id="petNameInput" placeholder="Name your pet" />
+    <button onclick="savePetName()">Save Name</button>
+  </div>
+  <h2 id="petName"></h2>
+  
+  <div class="pet-container">
+    <div class="pet" id="pet" title="Click to change pet!">🐶</div>
+    <div class="pet-effect" id="petEffect"></div>
+  </div>
+
+  <div class="stats" id="stats">
+    <div class="stat">❤️ Happiness: <span id="happiness">100</span>
+      <div class="progress-container"><div class="progress-bar happiness-bar" id="happinessBar" style="width:100%"></div></div>
+    </div>
+    <div class="stat">🍕 Hunger: <span id="hunger">0</span>
+      <div class="progress-container"><div class="progress-bar hunger-bar" id="hungerBar" style="width:0%"></div></div>
+    </div>
+    <div class="stat">🩺 Health: <span id="health">100</span>
+      <div class="progress-container"><div class="progress-bar health-bar" id="healthBar" style="width:100%"></div></div>
+    </div>
+    <div class="stat">🎂 Age: <span id="age">0</span> days</div>
+  </div>
+
+  <div class="buttons">
+    <button class="feed" onclick="feedPet()">Feed 🍕</button>
+    <button class="play" onclick="playWithPet()">Play 🎾</button>
+    <button class="checkin" onclick="checkIn()">Check-in 🩺</button>
+    <button class="minigame" onclick="openMiniGameMenu()">Mini-Games 🎮</button>
+  </div>
+
+  <!-- Mini-Game Menu Modal -->
+  <div class="modal" id="minigameModal">
+    <div class="modal-content">
+      <span class="close-modal" onclick="closeModal('minigameModal')">&times;</span>
+      <h2>Choose a Mini-Game</h2>
+      <div class="minigame-container">
+        <button class="minigame-btn" onclick="startMemoryGame()">Memory Match</button>
+        <button class="minigame-btn" onclick="startWhackAMole()">Whack-a-Mole</button>
+        <button class="minigame-btn" onclick="startMathGame()">Math Quiz</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Memory Game Modal -->
+  <div class="modal" id="memoryGameModal">
+    <div class="modal-content">
+      <span class="close-modal" onclick="endMemoryGame()">&times;</span>
+      <h2>Memory Match</h2>
+      <p>Find all matching pairs!</p>
+      <div class="memory-game" id="memoryGame"></div>
+      <p>Matches: <span id="memoryMatches">0</span>/8 | Time: <span id="memoryTime">0</span>s</p>
+    </div>
+  </div>
+
+  <!-- Whack-a-Mole Game Modal -->
+  <div class="modal" id="whackMoleModal">
+    <div class="modal-content">
+      <span class="close-modal" onclick="endWhackAMole()">&times;</span>
+      <h2>Whack-a-Mole</h2>
+      <p>Whack as many moles as you can in 30 seconds!</p>
+      <div class="whack-mole-game" id="whackMoleGame"></div>
+      <p>Score: <span id="moleScore">0</span> | Time left: <span id="moleTime">30</span>s</p>
+    </div>
+  </div>
+
+  <!-- Math Game Modal -->
+  <div class="modal" id="mathGameModal">
+    <div class="modal-content">
+      <span class="close-modal" onclick="endMathGame()">&times;</span>
+      <h2>Math Quiz</h2>
+      <p>Solve 5 math problems as fast as you can!</p>
+      <div id="mathProblem" style="font-size: 24px; margin: 20px 0;"></div>
+      <input type="number" id="mathAnswer" placeholder="Your answer">
+      <button onclick="checkMathAnswer()">Submit</button>
+      <p>Correct: <span id="mathCorrect">0</span>/5 | Time: <span id="mathTime">0</span>s</p>
+    </div>
+  </div>
+
+  <audio id="feedSound" src="https://www.soundjay.com/buttons/sounds/button-09.mp3" preload="auto"></audio>
+  <audio id="playSound" src="https://www.soundjay.com/buttons/sounds/button-21.mp3" preload="auto"></audio>
+  <audio id="checkinSound" src="https://www.soundjay.com/buttons/sounds/button-10.mp3" preload="auto"></audio>
+  <audio id="successSound" src="https://www.soundjay.com/buttons/sounds/button-02.mp3" preload="auto"></audio>
+  <audio id="failSound" src="https://www.soundjay.com/buttons/sounds/button-10.mp3" preload="auto"></audio>
+  <audio id="gameSound" src="https://www.soundjay.com/buttons/sounds/button-21.mp3" preload="auto"></audio>
+
+  <script>
+    // Pet data and state
+    const petEmojis = ['🐶', '🐱', '🐰', '🐹', '🐸', '🐵', '🦊', '🐻', '🐨', '🐼'];
+    const petEffects = ['💖', '🌟', '✨', '🎉', '💫', '⚡'];
+    let currentPetIndex = parseInt(localStorage.getItem('petIndex')) || 0;
+    let happiness = parseInt(localStorage.getItem('happiness')) || 100;
+    let hunger = parseInt(localStorage.getItem('hunger')) || 0;
+    let health = parseInt(localStorage.getItem('health')) || 100;
+    let petName = localStorage.getItem('petName') || '';
+    let age = parseInt(localStorage.getItem('age')) || 0;
+    let coins = parseInt(localStorage.getItem('coins')) || 0;
+    
+    // DOM elements
+    const pet = document.getElementById("pet");
+    const petEffect = document.getElementById("petEffect");
+    
+    // Audio elements
+    const feedSound = document.getElementById("feedSound");
+    const playSound = document.getElementById("playSound");
+    const checkinSound = document.getElementById("checkinSound");
+    const successSound = document.getElementById("successSound");
+    const failSound = document.getElementById("failSound");
+    const gameSound = document.getElementById("gameSound");
+    
+    // Game state
+    let gameActive = false;
+    
+    // Initialize the pet
+    function initPet() {
+      document.getElementById("petNameInput").value = petName;
+      displayPetName();
+      updateStats();
+      
+      // Load coins if they exist
+      if (localStorage.getItem('coins')) {
+        coins = parseInt(localStorage.getItem('coins'));
+      }
+    }
+    
+    // Update all stats and UI
+    function updateStats() {
+      // Update numbers
+      document.getElementById("happiness").textContent = happiness;
+      document.getElementById("hunger").textContent = hunger;
+      document.getElementById("health").textContent = health;
+      document.getElementById("age").textContent = age;
+      
+      // Update progress bars
+      document.getElementById("happinessBar").style.width = `${happiness}%`;
+      document.getElementById("hungerBar").style.width = `${hunger}%`;
+      document.getElementById("healthBar").style.width = `${health}%`;
+      
+      // Update pet appearance based on mood
+      pet.textContent = getPetMood();
+      
+      // Save to localStorage
+      saveToLocalStorage();
+    }
+    
+    function saveToLocalStorage() {
+      localStorage.setItem('happiness', happiness);
+      localStorage.setItem('hunger', hunger);
+      localStorage.setItem('health', health);
+      localStorage.setItem('age', age);
+      localStorage.setItem('petIndex', currentPetIndex);
+      localStorage.setItem('petName', petName);
+      localStorage.setItem('coins', coins);
+    }
+    
+    function getPetMood() {
+      if (health < 30) return '😢';
+      if (hunger > 70) return '😠';
+      if (happiness > 70) return petEmojis[currentPetIndex];
+      return '😐';
+    }
+    
+    function showEffect(emoji) {
+      petEffect.textContent = emoji;
+      petEffect.style.opacity = '1';
+      petEffect.style.transform = 'translateY(0)';
+      
+      setTimeout(() => {
+        petEffect.style.opacity = '0';
+        petEffect.style.transform = 'translateY(-50px)';
+      }, 1000);
+    }
+    
+    function animatePet() {
+      pet.classList.add("jump");
+      setTimeout(() => {
+        pet.classList.remove("jump");
+      }, 600);
+    }
+    
+    // Pet actions
+    function feedPet() {
+      if (hunger <= 0) {
+        showAlert("Your pet isn't hungry right now!");
+        return;
+      }
+      
+      hunger = Math.max(0, hunger - 20);
+      happiness = Math.min(100, happiness + 5);
+      
+      feedSound.currentTime = 0;
+      feedSound.play();
+      showEffect('🍕');
+      animatePet();
+      updateStats();
+    }
+    
+    function playWithPet() {
+      if (hunger > 90) {
+        showAlert("Your pet is too hungry to play! Feed them first.");
+        return;
+      }
+      
+      happiness = Math.min(100, happiness + 15);
+      hunger = Math.min(100, hunger + 5);
+      
+      playSound.currentTime = 0;
+      playSound.play();
+      showEffect('🎾');
+      animatePet();
+      updateStats();
+    }
+    
+    function checkIn() {
+      if (hunger > 70 || happiness < 30) {
+        health = Math.max(0, health - 10);
+      } else {
+        health = Math.min(100, health + 5);
+      }
+      
+      checkinSound.currentTime = 0;
+      checkinSound.play();
+      showEffect('💊');
+      animatePet();
+      updateStats();
+    }
+    
+    function savePetName() {
+      const input = document.getElementById("petNameInput");
+      petName = input.value.trim();
+      
+      if (!petName) {
+        showAlert("Please enter a name for your pet!");
+        return;
+      }
+      
+      localStorage.setItem('petName', petName);
+      displayPetName();
+      input.value = "";
+      showAlert(`Your pet is now named ${petName}!`);
+    }
+    
+    function displayPetName() {
+      document.getElementById("petName").textContent = petName ? `🐾 ${petName}` : '';
+    }
+    
+    function cyclePet() {
+      currentPetIndex = (currentPetIndex + 1) % petEmojis.length;
+      localStorage.setItem('petIndex', currentPetIndex);
+      showEffect('✨');
+      updateStats();
+    }
+    
+    function showAlert(message) {
+      alert(message);
+    }
+    
+    // Mini-Game Functions
+    function openMiniGameMenu() {
+      if (hunger > 80) {
+        showAlert("Your pet is too hungry to play games! Feed them first.");
+        return;
+      }
+      
+      openModal('minigameModal');
+    }
+    
+    function closeModal(modalId) {
+      document.getElementById(modalId).style.display = 'none';
+      gameActive = false;
+    }
+    
+    function openModal(modalId) {
+      document.getElementById(modalId).style.display = 'flex';
+      gameActive = true;
+    }
+    
+    // Memory Game
+    let memoryCards = [];
+    let flippedCards = [];
+    let matchedPairs = 0;
+    let memoryGameTime = 0;
+    let memoryTimer;
+    
+    const emojiPairs = ['🐶', '🐱', '🐰', '🐹', '🐸', '🐵', '🦊', '🐻'];
+    
+    function startMemoryGame() {
+      closeModal('minigameModal');
+      openModal('memoryGameModal');
+      
+      // Reset game state
+      memoryCards = [];
+      flippedCards = [];
+      matchedPairs = 0;
+      memoryGameTime = 0;
+      
+      document.getElementById('memoryMatches').textContent = '0';
+      document.getElementById('memoryTime').textContent = '0';
+      
+      // Create cards (pairs of emojis)
+      const cards = [...emojiPairs, ...emojiPairs];
+      
+      // Shuffle cards
+      for (let i = cards.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [cards[i], cards[j]] = [cards[j], cards[i]];
+      }
+      
+      // Create game board
+      const gameBoard = document.getElementById('memoryGame');
+      gameBoard.innerHTML = '';
+      
+      cards.forEach((emoji, index) => {
+        const card = document.createElement('div');
+        card.className = 'memory-card';
+        card.dataset.index = index;
+        card.dataset.emoji = emoji;
+        card.addEventListener('click', flipCard);
+        gameBoard.appendChild(card);
+      });
+      
+      // Start timer
+      memoryTimer = setInterval(() => {
+        memoryGameTime++;
+        document.getElementById('memoryTime').textContent = memoryGameTime;
+      }, 1000);
+    }
+    
+    function flipCard() {
+      if (!gameActive) return;
+      
+      const card = this;
+      
+      // Don't allow flipping if already flipped or matched
+      if (card.classList.contains('flipped') || card.classList.contains('matched')) {
+        return;
+      }
+      
+      // Don't allow more than 2 cards flipped
+      if (flippedCards.length >= 2) {
+        return;
+      }
+      
+      // Flip the card
+      card.classList.add('flipped');
+      card.textContent = card.dataset.emoji;
+      flippedCards.push(card);
+      
+      // Play sound
+      gameSound.currentTime = 0;
+      gameSound.play();
+      
+      // Check for match if 2 cards are flipped
+      if (flippedCards.length === 2) {
+        setTimeout(checkForMatch, 500);
+      }
+    }
+    
+    function checkForMatch() {
+      const [card1, card2] = flippedCards;
+      
+      if (card1.dataset.emoji === card2.dataset.emoji) {
+        // Match found
+        card1.classList.add('matched');
+        card2.classList.add('matched');
+        matchedPairs++;
+        
+        document.getElementById('memoryMatches').textContent = matchedPairs;
+        
+        successSound.currentTime = 0;
+        successSound.play();
+        
+        // Check if game is over
+        if (matchedPairs === emojiPairs.length) {
+          endMemoryGame(true);
+        }
+      } else {
+        // No match
+        card1.classList.remove('flipped');
+        card2.classList.remove('flipped');
+        card1.textContent = '';
+        card2.textContent = '';
+        
+        failSound.currentTime = 0;
+        failSound.play();
+      }
+      
+      flippedCards = [];
+    }
+    
+    function endMemoryGame(completed = false) {
+      clearInterval(memoryTimer);
+      closeModal('memoryGameModal');
+      
+      if (completed) {
+        const score = Math.max(1, 30 - memoryGameTime);
+        happiness = Math.min(100, happiness + score);
+        coins += score;
+        showAlert(`Great job! You earned ${score} coins!`);
+        updateStats();
+      }
+    }
+    
+    // Whack-a-Mole Game
+    let moleScore = 0;
+    let moleTimeLeft = 30;
+    let moleTimer;
+    let moleGameInterval;
+    
+    function startWhackAMole() {
+      closeModal('minigameModal');
+      openModal('whackMoleModal');
+      
+      // Reset game state
+      moleScore = 0;
+      moleTimeLeft = 30;
+      
+      document.getElementById('moleScore').textContent = '0';
+      document.getElementById('moleTime').textContent = '30';
+      
+      // Create game board
+      const gameBoard = document.getElementById('whackMoleGame');
+      gameBoard.innerHTML = '';
+      
+      for (let i = 0; i < 9; i++) {
+        const hole = document.createElement('div');
+        hole.className = 'mole-hole';
+        
+        const mole = document.createElement('div');
+        mole.className = 'mole';
+        mole.addEventListener('click', whackMole);
+        
+        hole.appendChild(mole);
+        gameBoard.appendChild(hole);
+      }
+      
+      // Start timer
+      moleTimer = setInterval(() => {
+        moleTimeLeft--;
+        document.getElementById('moleTime').textContent = moleTimeLeft;
+        
+        if (moleTimeLeft <= 0) {
+          endWhackAMole(true);
+        }
+      }, 1000);
+      
+      // Start mole popping
+      moleGameInterval = setInterval(popRandomMole, 800);
+    }
+    
+    function popRandomMole() {
+      if (!gameActive) return;
+      
+      const holes = document.querySelectorAll('.mole-hole');
+      const randomIndex = Math.floor(Math.random() * holes.length);
+      const mole = holes[randomIndex].querySelector('.mole');
+      
+      // Reset mole if it's already up
+      if (mole.classList.contains('up')) {
+        mole.classList.remove('up');
+        return;
+      }
+      
+      // Pop up the mole
+      mole.classList.add('up');
+      
+      // Auto hide after some time
+      setTimeout(() => {
+        if (mole.classList.contains('up') && !mole.classList.contains('whacked')) {
+          mole.classList.remove('up');
+        }
+      }, 1000);
+    }
+    
+    function whackMole() {
+      if (!this.classList.contains('up') || this.classList.contains('whacked')) {
+        return;
+      }
+      
+      this.classList.add('whacked');
+      moleScore++;
+      document.getElementById('moleScore').textContent = moleScore;
+      
+      gameSound.currentTime = 0;
+      gameSound.play();
+      
+      setTimeout(() => {
+        this.classList.remove('up', 'whacked');
+      }, 300);
+    }
+    
+    function endWhackAMole(completed = false) {
+      clearInterval(moleTimer);
+      clearInterval(moleGameInterval);
+      closeModal('whackMoleModal');
+      
+      if (completed) {
+        const score = Math.floor(moleScore / 2);
+        happiness = Math.min(100, happiness + score);
+        coins += score;
+        showAlert(`Whack-tastic! You earned ${score} coins!`);
+        updateStats();
+      }
+    }
+    
+    // Math Game
+    let mathCorrect = 0;
+    let mathProblems = 0;
+    let mathStartTime;
+    let mathTimer;
+    let currentProblem = {};
+    
+    function startMathGame() {
+      closeModal('minigameModal');
+      openModal('mathGameModal');
+      
+      // Reset game state
+      mathCorrect = 0;
+      mathProblems = 0;
+      
+      document.getElementById('mathCorrect').textContent = '0';
+      document.getElementById('mathTime').textContent = '0';
+      document.getElementById('mathAnswer').value = '';
+      
+      // Start timer
+      mathStartTime = Date.now();
+      mathTimer = setInterval(updateMathTimer, 100);
+      
+      // Generate first problem
+      generateMathProblem();
+    }
+    
+    function generateMathProblem() {
+      if (mathProblems >= 5) {
+        endMathGame(true);
+        return;
+      }
+      
+      mathProblems++;
+      
+      const operations = ['+', '-', '*'];
+      const operation = operations[Math.floor(Math.random() * operations.length)];
+      
+      let num1, num2;
+      
+      switch (operation) {
+        case '+':
+          num1 = Math.floor(Math.random() * 20) + 1;
+          num2 = Math.floor(Math.random() * 20) + 1;
+          break;
+        case '-':
+          num1 = Math.floor(Math.random() * 20) + 10;
+          num2 = Math.floor(Math.random() * num1) + 1;
+          break;
+        case '*':
+          num1 = Math.floor(Math.random() * 10) + 1;
+          num2 = Math.floor(Math.random() * 10) + 1;
+          break;
+      }
+      
+      currentProblem = {
+        num1,
+        num2,
+        operation,
+        answer: eval(`${num1}${operation}${num2}`)
+      };
+      
+      document.getElementById('mathProblem').textContent = 
+        `${num1} ${operation} ${num2} = ?`;
+      document.getElementById('mathAnswer').value = '';
+      document.getElementById('mathAnswer').focus();
+    }
+    
+    function checkMathAnswer() {
+      const userAnswer = parseInt(document.getElementById('mathAnswer').value);
+      
+      if (isNaN(userAnswer)) {
+        showAlert("Please enter a valid number!");
+        return;
+      }
+      
+      if (userAnswer === currentProblem.answer) {
+        mathCorrect++;
+        document.getElementById('mathCorrect').textContent = mathCorrect;
+        successSound.currentTime = 0;
+        successSound.play();
+      } else {
+        failSound.currentTime = 0;
+        failSound.play();
+      }
+      
+      generateMathProblem();
+    }
+    
+    function updateMathTimer() {
+      const elapsed = Math.floor((Date.now() - mathStartTime) / 1000);
+      document.getElementById('mathTime').textContent = elapsed;
+    }
+    
+    function endMathGame(completed = false) {
+      clearInterval(mathTimer);
+      closeModal('mathGameModal');
+      
+      if (completed) {
+        const elapsed = Math.floor((Date.now() - mathStartTime) / 1000);
+        const score = Math.max(1, mathCorrect * 5 - Math.floor(elapsed / 5));
+        happiness = Math.min(100, happiness + score);
+        coins += score;
+        showAlert(`Math wizard! You earned ${score} coins with ${mathCorrect}/5 correct in ${elapsed} seconds!`);
+        updateStats();
+      }
+    }
+    
+    // Game loop - update stats over time
+    setInterval(() => {
+      hunger = Math.min(100, hunger + 1);
+      happiness = Math.max(0, happiness - 1);
+      
+      if (hunger > 80) {
+        health = Math.max(0, health - 1);
+      }
+      
+      updateStats();
+    }, 5000);
+    
+    // Age counter
+    setInterval(() => {
+      age++;
+      localStorage.setItem('age', age);
+      updateStats();
+    }, 60000);
+    
+    // Event listeners
+    pet.addEventListener('click', cyclePet);
+    
+    // Initialize the pet when page loads
+    window.onload = initPet;
+  </script>
+</body>
+</html>
