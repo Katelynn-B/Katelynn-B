@@ -1,6 +1,6 @@
 - 👋 Hi, I’m @Katelynn-B
 -👀 I’m interested in community engagement, law, public policy, robotics, and STEM education
--🌱 I’m currently learning Java, JavaScript, CSS, and exploring legal advocacy and civic leadership
+-🌱 I’m currently learning C++ and advancing my knowledge on Java, CSS, and html as well as exploring legal advocacy and civic leadership
 -💞️ I’m looking to collaborate on youth outreach programs, STEM projects, and public speaking opportunities
 -📫 How to reach me: KatMarrieleBog@gmail.com
 -😄 Pronouns: She/Her
